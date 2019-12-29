@@ -4,6 +4,9 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
+import requests
+
+requests.get('https://api.github.com')
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -29,11 +32,11 @@ indicator_key = df0.drop_duplicates('indicator_short').set_index('indicator_shor
 top_markdown_text = '''
 ### Dash Tutorial - Sustainable Development Goals
 #### Zane Rankin, 2/17/2019
-The [Institute for Health Metrics and Evaluation](http://www.healthdata.org/) publishes estimates for 41 health-related SDG indicators for 
-195 countries and territories.  
-I downloaded the [data](http://ghdx.healthdata.org/record/global-burden-disease-study-2017-gbd-2017-health-related-sustainable-development-goals-sdg) 
-for a tutorial on Medium and Github   
-**Indicators are scaled 0-100, with 0 being worst observed (e.g. highest mortality) and 100 being best.**  
+The [Institute for Health Metrics and Evaluation](http://www.healthdata.org/) publishes estimates for 41 health-related SDG indicators for
+195 countries and territories.
+I downloaded the [data](http://ghdx.healthdata.org/record/global-burden-disease-study-2017-gbd-2017-health-related-sustainable-development-goals-sdg)
+for a tutorial on Medium and Github
+**Indicators are scaled 0-100, with 0 being worst observed (e.g. highest mortality) and 100 being best.**
 '''
 
 app.layout = html.Div([
