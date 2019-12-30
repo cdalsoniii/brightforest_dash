@@ -1,8 +1,32 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <script>
+    $(document).ready(function(){
+  //     var proTitle = "{{ product.title }} | {{ shop.url }}/{{ product.url }}";
+
+  var proId = "{{ product.id }}";
+  var proPrice = "{{ product.price }}";
+
+  var refreshIntervalId = setInterval( function(){
+    var new_frame = document.getElementById('frame_ubsXdafewdde44');
+    if(new_frame != null){
+      new_frame.contentWindow.postMessage("Here I am!");
+      //new_frame.contentWindow.postMessage({product_price: proPrice ,form_name: "newForm" }, 'https://formbuilder.hulkapps.com/corepage/customform?id=ubsXJecF9AGGwlLZdi_kHg');
+  //      clearInterval(refreshIntervalId);
+    }
+  }  , 2000 );
+
+      //var refreshIntervalId = setInterval( function(){ var new_frame = document.getElementById('ubsXJecF9AGGwlLZdi_kHg');
+      // frame_is static and form id is from app. if(new_frame != null){ new_frame.contentWindow.postMessage({product_fill: proTitle, form_name: "productTitle" }, 'https://formbuilder.hulkapps.com/corepage/customform?id=form_id'); //form id // clearInterval(refreshIntervalId); } } , 2000 ); });
+  //     setTimeout(function(){ alert(document.querySelector("#formGeneratorForm > div > div > div:nth-child(1) > div > p")); }, 10000);
+      //alert(document.querySelector("#formGeneratorForm > div > div > div:nth-child(1) > div > p"));
+    });
+  </script>
+</head>
 <body>
 
-<iframe src="http://127.0.0.1:8050" style="width: 800px; height: 800px;">
+<iframe id="ubsXdafewdde44" src="http://127.0.0.1:8050" style="width: 800px; height: 800px;">
   <p>Your browser does not support iframes.</p>
 </iframe>
 

@@ -1,4 +1,4 @@
-//alert('If you see this alert, then your custom JavaScript script has run!')
+alert('If you see this alert, then your custom JavaScript script has run!')
 
 alert(event.data);
 
