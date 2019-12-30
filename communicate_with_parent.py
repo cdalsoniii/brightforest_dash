@@ -27,7 +27,7 @@ indicator_key = df0.drop_duplicates('indicator_short').set_index('indicator_shor
 
 
 top_markdown_text = '''
-### Dash Tutorial - Sustainable Development Goals
+### Dash Tutorial - Sustainable Development Goals 
 #### Zane Rankin, 2/17/2019
 The [Institute for Health Metrics and Evaluation](http://www.healthdata.org/) publishes estimates for 41 health-related SDG indicators for
 195 countries and territories.
@@ -173,6 +173,85 @@ def update_graph(x_varname, y_varname, hoverData):
             hovermode='closest'
         )
     }
+
+
+    def write_to_data_uri(s):
+        """
+        Writes to a uri.
+        Use this function to embed javascript into the dash app.
+        Adapted from the suggestion by user 'mccalluc' found here:
+        https://community.plot.ly/t/problem-of-linking-local-javascript-file/6955/2
+        """
+        uri = (
+            ('data:;base64,').encode('utf8') +
+            urlsafe_b64encode(s.encode('utf8'))
+        ).decode("utf-8", "strict")
+        return uri
+
+    # Get parentDomain
+    # Define JS func "sendMessageToParent"
+    app.scripts.append_script({
+        'external_url': write_to_data_uri("""
+    var parentDomain = '';
+
+    window.addEventListener('message',function(event) {
+       console.log('message received from parent:  ' + event.data,event);
+       parentDomain = event.data;
+    },false);
+
+    function sendMessageToParent(s) {
+       console.log("Sending message to parent at ("+parentDomain+") s=" + s);
+       parent.postMessage(s,parentDomain);
+    }
+
+    alert("Hi");
+
+        """)})
+
+    # Hidden div to store the message/string which will be sent to the parent domain
+    # using 'title' to store the message/string because it is easy to get javascript
+    # funciton to retrieve the value of the title
+    html.Div(
+        id='msg_for_parent',
+        title='',
+        style={'display': 'none'}
+        ),
+
+    # Button to execute javascript. Does nothing in the dash world
+    html.Button(
+        'Click Me',
+        id='exec_js',
+    ),
+
+    # call back to update the title of the hidden div, i.e. update the message for
+    # the parent domain
+    # using 'url' as an input but any dash component will do.
+    @app.callback(
+        dash.dependencies.Output('msg_for_parent', 'title'),
+        [dash.dependencies.Input('url', 'pathname')]
+        )
+    def update_msg_for_parent(pathname):
+        msg = "hello from %s" % pathname
+        return msg
+
+    # Javascript to message the parent. Or, in more detail, to send the 'title' of
+    # the div 'msg_for_parent' to the parent domain.
+    #
+    # setTimeout is a dirty, dirty hack. Forces the page to wait two seconds before
+    # appending this script, by which time "msg_for_parent" and "exec_js" are
+    # defined. Without this, there is an error to the effect of "cannot set property
+    # onclick of null"
+    app.scripts.append_script({
+        'external_url': write_to_data_uri("""
+    setTimeout(function(){
+       $(document).ready(function(){
+            document.getElementById("exec_js").onclick = function(){
+                var msg = document.getElementById("msg_for_parent").title;
+                sendMessageToParent(msg);
+            };
+        });
+    }, 2000);
+        """)})
 
 if __name__ == '__main__':
     app.run_server(debug=True)
