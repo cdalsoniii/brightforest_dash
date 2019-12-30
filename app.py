@@ -54,7 +54,7 @@ html.Div(id='page-content')
 
     # LEFT - CHOROPLETH MAP
     html.Div([
-        dcc.Location(id='url', refresh=True)
+        #dcc.Location(id='url', refresh=True)
         dcc.Dropdown(
             id='x-varname',
             options=[{'label': i, 'value': i} for i in indicators],
