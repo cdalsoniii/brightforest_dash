@@ -8,8 +8,6 @@ import requests
 
 requests.get('https://api.github.com')
 
-location = dcc.Location(id='url', refresh=False)
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -41,13 +39,20 @@ for a tutorial on Medium and Github
 **Indicators are scaled 0-100, with 0 being worst observed (e.g. highest mortality) and 100 being best.**
 '''
 
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])
 
 
 app.layout = html.Div([
 
-dcc.Location(id='url', refresh=False),
-html.Div(id='page-content')
-
+@app.callback(dash.dependencies.Output('page-content', 'children'),
+              [dash.dependencies.Input('url', 'pathname')])
+def display_page(pathname):
+    return html.Div([
+        html.H3('You are on page {}'.format(pathname))
+    ])
 
     # HEADER
     dcc.Markdown(children=top_markdown_text),
@@ -78,12 +83,6 @@ html.Div(id='page-content')
 
 ])
 
-@app.callback(dash.dependencies.Output('page-content', 'children'),
-              [dash.dependencies.Input('url', 'pathname')])
-def display_page(pathname):
-    return html.Div([
-        html.H3('You are on page {}'.format(pathname))
-    ])
 
 @app.callback(
     Output('x-description', 'children'),
