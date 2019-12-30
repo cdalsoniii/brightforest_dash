@@ -8,6 +8,8 @@ import requests
 
 requests.get('https://api.github.com')
 
+location = dcc.Location(id='url', refresh=True)
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -52,6 +54,7 @@ html.Div(id='page-content')
 
     # LEFT - CHOROPLETH MAP
     html.Div([
+        dcc.Location(id='url', refresh=True)
         dcc.Dropdown(
             id='x-varname',
             options=[{'label': i, 'value': i} for i in indicators],
