@@ -1,0 +1,252 @@
+<html>
+  <head>
+
+<!-- Stylesheet -->
+   <link rel="stylesheet" href="https://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+
+   <style>
+     .search_label {
+  font-size: large;
+  color: #447bdc;
+}
+
+table {
+    background-color: #aaa;
+}
+tbody {
+    background-color: #ddd;
+    height: 450px;
+    overflow-y: scroll;
+}
+
+thead > tr, tbody {
+    display: block;
+}
+  </style>
+<script>
+  var dataURL = 'https://gist.githubusercontent.com/theengineear/69a15c652d9d91a434f8/' +
+              'raw/fc6a95f0d7b52e5abd0f61e60a71c35d9689682a/imdb_movies.json',
+    categorySelector = document.querySelector('#category_selector'),
+    searchSelector = document.querySelector('#search_selector'),
+    infoSelector = document.querySelector('#info_selector'),
+    plot = $('#iplot')[0].contentWindow,
+    data,
+    currentMatches = [],
+    currentHover = {};
+
+var dataLoad = $.get(dataURL).then(function (sdata) {
+    data = JSON.parse(sdata);
+});
+
+var getTable = function getTable (matches, year, info) {
+    var matchesForYear = matches.filter(function (match) {
+        return match.Year.slice(0, 4) == year;
+    });
+    var body = document.body,
+        table  = document.createElement('table'),
+        header = table.createTHead(),
+        tableBody = table.appendChild(document.createElement('tbody')),
+        row,
+        yearCell,
+        titleCell,
+        infoCell;
+    table.style.width  = '600px';
+    table.style.border = "1px solid black";
+    table.style.height = '500px';
+
+    	row = header.insertRow();
+
+    titleCell = row.insertCell();
+    titleCell.innerHTML = 'Title';
+    titleCell.style.width = '200px'
+
+    infoCell = row.insertCell();
+    infoCell.innerHTML = info;
+
+    for(var i = 0; i < matchesForYear.length; i++){
+        row = tableBody.insertRow();
+
+        titleCell = row.insertCell();
+        titleCell.innerHTML = matchesForYear[i].Title;
+        titleCell.style.width = '200px'
+
+        infoCell = row.insertCell();
+        infoCell.innerHTML = matchesForYear[i][info]
+    }
+    return table;
+}
+
+var getTrace = function getTrace (data, category, search, info) {
+    var trace = {x: [], y: [], text: []},
+        title,
+        titles = [],
+        match,
+        infoText,
+        matches;
+    console.log(category, search, info);
+        matches = data.filter(function (mov) {
+            return mov[category] && mov[category].indexOf(search) !== -1;
+        });
+
+    for (var i = 0; i < matches.length; i++) {
+        match = matches[i];
+        title = match.Title;
+        infoText = '';
+
+        if (trace.x.indexOf(match.Year.slice(0, 4)) === -1) {
+            trace.x.push(match.Year.slice(0, 4));
+            trace.y.push(0);
+            trace.text.push('');
+        }
+
+        trace.y[trace.y.length - 1]++
+
+        if (info) {
+            infoText = match[info].slice(0,60);
+        }
+
+        trace.text[trace.text.length - 1] += title + ': ' + infoText + '<br>';
+    }
+    currentMatches = matches;
+    return trace;
+};
+
+var updateGraph = function updateGraph (data, category, search, info) {
+    var trace = getTrace(data, category, search, info);
+    plot.postMessage(
+      {
+        task: 'restyle',
+        update: {
+          x: [trace.x],
+          y: [trace.y],
+          text: [trace.text],
+          type: 'bar'
+        },
+        indices: [0]
+      }, 'https://plot.ly');
+};
+
+var updateTable = function updateTable () {
+    var hoverObj = currentHover;
+    var year = hoverObj.x,
+        info = infoSelector.value;
+    var table = getTable(currentMatches, year, info),
+        tableParent = document.querySelector("#output_table");
+    while (tableParent.firstChild) {
+        tableParent.removeChild(tableParent.firstChild);
+    }
+    tableParent.appendChild(table);
+};
+
+var update = function update () {
+    var category = categorySelector.value,
+        search = searchSelector.value,
+        info = infoSelector.value;
+  	  updateGraph(data, category, search, info)
+    updateTable()
+};
+
+categorySelector.addEventListener('change', update);
+searchSelector.addEventListener('change', update);
+infoSelector.addEventListener('change', update);
+
+var pinger = setInterval(function(){
+    plot.postMessage({task: 'ping'}, 'https://plot.ly')
+}, 100);
+
+window.addEventListener('message', function(e) {
+    var message = e.data;
+    if(message.pong) {
+        console.log('Initial pong, frame is ready to receive');
+        clearInterval(pinger);
+        plot.postMessage({
+            task: "relayout",
+            update: {
+                title: "imdb viewer",
+                paper_bgcolor: "rgb(238, 235, 234)",
+                font: {color:"rgb(105, 100, 124)"},
+                titlefont: {color:"rgb(88, 74, 77)"},
+                plot_bgcolor: "rgb(238, 235, 234)",
+                xaxis: {gridcolor: "white", tickangle: -40},
+                yaxis: {gridcolor: "white"}
+            }
+        }, "https://plot.ly")
+        plot.postMessage({
+            task: "restyle",
+            update: {marker: {color: "rgb(212, 189, 74)"}}
+        }, "https://plot.ly")
+        dataLoad.then(update);
+        plot.postMessage(
+            {
+                task: 'listen',
+                events: ['hover']
+            }, 'https://plot.ly');
+    } else if (message.type === "hover") {
+        currentHover = message.points[0];
+        updateTable();
+    } else {
+        console.log('got message: ', message);
+    }
+});
+
+  </script>
+
+  </head>
+<div id="container" style="overflow:hidden;">
+  <div id="selectors" style="float:left; width:400px">
+  <div>
+    <p class="search_label">Category to search in</p>
+    <select id="category_selector" name="category">
+      <option value="Actors">Actors</option>
+      <option value="Director">Director</option>
+      <option value="Plot">Plot</option>
+      <option value="Rated">Rated</option>
+      <option value="Language">Language</option>
+      <option value="Title">Title</option>
+      <option value="Country">Country</option>
+      <option value="Writer">Writer</option>
+      <option value="Metascore">Metascore</option>
+      <option value="imdbRating">imdbRating</option>
+      <option value="Released">Released</option>
+      <option value="Year">Year</option>
+      <option value="Genre" selected="selected">Genre</option>
+      <option value="Runtime">Runtime</option>
+      <option value="Type">Type</option>
+      <option value="Poster">Poster</option>
+      <option value="imdbVotes">imbdVotes</option>
+    </select>
+  </div>
+  <div>
+    <p class="search_label">Search term for selected category</p>
+    <input id="search_selector" type="text" name="search" value="Horror">
+  </div>
+  <div>
+    <p class="search_label">Additional info shown for matches</p>
+    <select id="info_selector" name="info">
+      <option value="Actors">Actors</option>
+      <option value="Director">Director</option>
+      <option value="Plot">Plot</option>
+      <option value="Rated">Rated</option>
+      <option value="Language">Language</option>
+      <option value="Title">Title</option>
+      <option value="Country">Country</option>
+      <option value="Writer">Writer</option>
+      <option value="Metascore">Metascore</option>
+      <option value="imdbRating" selected="selected">imdbRating</option>
+      <option value="Released">Released</option>
+      <option value="Year">Year</option>
+      <option value="Genre">Genre</option>
+      <option value="Runtime">Runtime</option>
+      <option value="Type">Type</option>
+      <option value="Poster">Poster</option>
+      <option value="imdbVotes">imbdVotes</option>
+    </select>
+  </div>
+  </div>
+  <div id="iframe_container" style="float:left; margin-right: 1cm">
+    <iframe id="iplot" width="600" height="500" frameborder="0" seamless="seamless" scrolling="no" src="https://plot.ly/~playground/7.embed?width=600&height=500"></iframe>
+  </div>
+  <div id="output_table" style="float:left; width:400px">
+  </div>
+</div>
+</html>

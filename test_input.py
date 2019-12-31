@@ -6,6 +6,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+arbitraty_product_name = '/test2'
+
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div([
@@ -16,6 +18,7 @@ app.layout = html.Div([
                 dcc.Tab(label='Page 1', value='/page-1'),
                 dcc.Tab(label='Page 2', value='/page-2'),
                 dcc.Tab(label='Page 3', value='/page-3'),
+                dcc.Tab(label=arbitraty_product_name, value=arbitraty_product_name),
             ]),
         ]),
     ]),

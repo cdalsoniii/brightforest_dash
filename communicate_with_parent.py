@@ -5,9 +5,14 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
 
+# external JavaScript files
+external_scripts = [
+    {'src': 'https://cdn.plot.ly/plotly-latest.min.js'}
+]
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, external_scripts=external_scripts)
 
 server = app.server
 
@@ -27,7 +32,7 @@ indicator_key = df0.drop_duplicates('indicator_short').set_index('indicator_shor
 
 
 top_markdown_text = '''
-### Dash Tutorial - Sustainable Development Goals 
+### Dash Tutorial - Sustainable Development Goals
 #### Zane Rankin, 2/17/2019
 The [Institute for Health Metrics and Evaluation](http://www.healthdata.org/) publishes estimates for 41 health-related SDG indicators for
 195 countries and territories.
@@ -40,6 +45,13 @@ app.layout = html.Div([
 
     # HEADER
     dcc.Markdown(children=top_markdown_text),
+
+    # Plotly embed
+
+    html.Div(
+    id='tester',
+    style={'float': 'left', 'width': '39%'}
+    ),
 
     # LEFT - CHOROPLETH MAP
     html.Div([
