@@ -1,1 +1,1 @@
-web: gunicorn app:server --log-file=-
+web: gunicorn test_input:server --log-file=-
